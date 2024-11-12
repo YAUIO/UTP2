@@ -1,5 +1,7 @@
 import Utils.ClientHandler;
 import Utils.Print;
+import com.diogonunes.jcolor.Ansi;
+import com.diogonunes.jcolor.Attribute;
 
 import javax.sound.midi.Receiver;
 import java.io.BufferedReader;
@@ -46,7 +48,13 @@ public class Server extends Thread {
                 ClientHandler handler = new ClientHandler(client, true);
                 handler.setHandlerName(name);
                 synchronized (clients) {
+                    if (clients.isEmpty()){
+                        handler.send("<info> Only you are currently connected to the server ");
+                    } else {
+                        handler.send("<info> List of connected users: " + Print.toStr(clients));
+                    }
                     clients.add(handler);
+                    Print.format("<info> " + clients.size() + " clients connected ");
                 }
                 Print.format("<log> Server accepted a socket!");
             } catch (IOException e) {
@@ -128,21 +136,23 @@ public class Server extends Thread {
         private String msgToString(ArrayList<String> msg) {
             String r = "";
             String first = msg.getFirst();
+            msg.removeFirst();
 
             if ((sender == null || sender.isEmpty()) && !(msg.size() > 1 && msg.get(1).equals("/send"))) {
                 sender = first;
-                msg.removeFirst();
             }
 
-            if (msg.size() > 1 && msg.get(1).equals("/send")) {
-                r += "user: \"" + msg.getFirst() + "\" sent you: \"";
+            if (msg.size() > 1 && msg.getFirst().equals("/send")) {
+                r += "user: \"" + first + "\" sent you: \"";
 
-                int i = 3;
+                int i = 2;
 
                 while (i < msg.size()) {
-                    r += msg.get(i);
+                    r += msg.get(i) + " ";
                     i++;
                 }
+
+                r = r.substring(0,r.length()-1);
 
                 r += "\"";
             } else {
@@ -153,9 +163,11 @@ public class Server extends Thread {
                 int i = 0;
 
                 while (i < msg.size()) {
-                    r += msg.get(i);
+                    r += msg.get(i) + " ";
                     i++;
                 }
+
+                r = r.substring(0,r.length()-1);
 
                 r += "\"";
             }
@@ -175,25 +187,79 @@ public class Server extends Thread {
                 }
             }
 
+            HashSet<ClientHandler> toRemove = new HashSet<>();
+
             while (server.isAlive()) {
+
                 synchronized (server.clients) {
+                    if (!toRemove.isEmpty()) {
+                        server.clients.removeAll(toRemove);
+                        Print.format("<info> " + server.clients.size() + " clients connected ");
+
+                        for (ClientHandler client : server.clients) {
+                            for (ClientHandler user : toRemove) {
+                                client.send("<info> User \"" + user.getName() + "\" disconnected ");
+                            }
+                        }
+
+                        toRemove.clear();
+                    }
+
                     for (ClientHandler handler : server.clients) {
                         String request = handler.getRequest();
 
+                        if (!handler.isAlive()) {
+                            toRemove.add(handler);
+                            continue;
+                        }
+
                         if (request != null && !request.equals("null")) {
-                            Print.format("<info> REQUEST " + request);
+                            Print.format("<info> processing request: " + request);
+
+                            boolean isDenied = false;
 
                             ArrayList<String> parsedRequest = new ArrayList<>(Arrays.stream(request.split(" ")).toList());
-                            System.out.println(parsedRequest);
                             parsedRequest.removeFirst();
 
                             String msg = "";
+
+                            if (state != State.Empty) {
+                                if (parsedRequest.getLast().equals("CANCEL")) {
+                                    for (ClientHandler client : server.clients) {
+                                        if (sender.equals(client.getName())) {
+                                            Print.format("<debug> cancel operation found match of " + sender + " with " + client.getName());
+                                            client.send("<info> Operation cancelled");
+                                            state = State.Empty;
+                                            sender = "";
+                                            receivers.clear();
+                                            break;
+                                        }
+                                    }
+                                    continue;
+                                }
+                            }
 
                             if (!parsedRequest.isEmpty()){
                                 msg = msgToString(parsedRequest);
                             }
 
-                            System.out.println(parsedRequest);
+                            for (String banphrase : server.blacklist) {
+                                if (msg.contains(banphrase)) {
+                                    isDenied = true;
+                                    break;
+                                }
+                            }
+
+                            if (isDenied) {
+                                for (ClientHandler client : server.clients) {
+                                    if (parsedRequest.getFirst().equals(client.getName())) {
+                                        client.send("Dear user, this phrase is banned on the server. Please read the banned phrases list: " + server.blacklist.toString());
+                                        Print.format("<debug> Denied response: found match of " + parsedRequest.getFirst() + " with " + client.getName() + " ");
+                                        break;
+                                    }
+                                }
+                                continue;
+                            }
 
                             switch (parsedRequest.get(1)) {
                                 case "/send" -> {
@@ -201,6 +267,7 @@ public class Server extends Thread {
                                     parsedRequest.removeFirst();
                                     for (ClientHandler client : server.clients) {
                                         if (parsedRequest.getFirst().equals(client.getName())) {
+                                            Print.format("<debug> /send found match of " + parsedRequest.getFirst() + " with " + client.getName());
                                             client.send(msg);
                                             break;
                                         }
@@ -209,18 +276,37 @@ public class Server extends Thread {
                                 case "/sendm" -> {
                                     state = State.nextSendM;
                                     sender = parsedRequest.getFirst();
-                                    receivers = new HashSet<>(parsedRequest.subList(2, parsedRequest.size() - 1));
+                                    Print.format("<debug> sendm sender " + sender + ", full set " + parsedRequest.toString());
+                                    receivers = new HashSet<>(parsedRequest.subList(2, parsedRequest.size()));
+                                    Print.format("<debug> sendm hashset " + receivers.toString());
+                                    for (ClientHandler client : server.clients) {
+                                        if (sender.equals(client.getName())) {
+                                            Print.format("<debug> /send found match of " + sender + " with " + client.getName());
+                                            client.send("<info> Now type the message you want to send to " + Print.toStr(receivers) + ", or " + Ansi.colorize("CANCEL", Attribute.RED_BACK()) + " to abort the operation ");
+                                            break;
+                                        }
+                                    }
                                 }
                                 case "/sendex" -> {
                                     state = State.nextSendEx;
                                     sender = parsedRequest.getFirst();
-                                    receivers = new HashSet<>(parsedRequest.subList(2, parsedRequest.size() - 1));
+                                    Print.format("<debug> sendex sender " + sender + ", full set " + parsedRequest.toString());
+                                    receivers = new HashSet<>(parsedRequest.subList(2, parsedRequest.size()));
+                                    Print.format("<debug> sendex hashset " + receivers.toString());
+                                    for (ClientHandler client : server.clients) {
+                                        if (sender.equals(client.getName())) {
+                                            Print.format("<debug> /send found match of " + sender + " with " + client.getName());
+                                            client.send("<info> Now type the message you want to send to everybody, excluding " + Print.toStr(receivers) + ", or " + Ansi.colorize("CANCEL", Attribute.RED_BACK()) + Ansi.colorize(" to abort the operation ",Attribute.BOLD(),Attribute.BLUE_BACK()));
+                                            break;
+                                        }
+                                    }
                                 }
                                 case "/banlist" -> {
                                     parsedRequest.remove(1);
                                     for (ClientHandler client : server.clients) {
                                         if (parsedRequest.getFirst().equals(client.getName())) {
-                                            client.send(server.blacklist.toString());
+                                            client.send(Print.toStr(server.blacklist));
+                                            Print.format("<debug> /banlist found match of " + parsedRequest.getFirst() + " with " + client.getName());
                                             break;
                                         }
                                     }
@@ -228,13 +314,16 @@ public class Server extends Thread {
                                 default -> {
                                     if (state == State.Empty) {
                                         for (ClientHandler client : server.clients) {
-                                            client.send(msg);
+                                            if (!client.getName().equals(parsedRequest.getFirst())){
+                                                client.send(msg);
+                                            }
                                         }
                                     } else if (state == State.nextSendM) {
                                         state = State.Empty;
                                         for (String receiver : receivers) {
                                             for (ClientHandler client : server.clients) {
                                                 if (receiver.equals(client.getName())) {
+                                                    Print.format("<debug> /sendm found match of " + receiver + " with " + client.getName());
                                                     client.send(msg);
                                                     break;
                                                 }
@@ -245,6 +334,7 @@ public class Server extends Thread {
                                         for (String receiver : receivers) {
                                             for (ClientHandler client : server.clients) {
                                                 if (!receiver.equals(client.getName())) {
+                                                    Print.format("<debug> /sendex found !match of " + receiver + " with " + client.getName());
                                                     client.send(msg);
                                                 }
                                             }
@@ -252,6 +342,7 @@ public class Server extends Thread {
                                     }
                                 }
                             }
+                            System.out.println();
                         }
                     }
                 }

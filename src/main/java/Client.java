@@ -49,7 +49,7 @@ public class Client {
             while (servername.length() < 4){
                 servername = sc.nextLine();
                 if (servername.length() < 4) {
-                    Print.error("Minimum amount of characters: 4");
+                    Print.error("Minimal amount of characters: 4");
                 }
             }
 

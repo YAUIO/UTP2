@@ -22,11 +22,11 @@ public class InputWriterThread extends Thread {
             lastLine = s;
         }
         if (s.contains("<info>")){
-            Print.format(s);
+            Print.format(s + " ");
         } else if (handler.isServer != null && handler.isServer){
-            Print.format("<received>");
+            Print.format("<received> " + s.getBytes().length + " bytes ");
         } else {
-            Print.format("<received> " + s);
+            Print.format("<received> " + s + " ");
         }
     }
 
@@ -49,9 +49,11 @@ public class InputWriterThread extends Thread {
                     receive(line);
                 }
             } catch (IOException e) {
-                Print.error(e.getMessage() + " in ClientHandler " + handler.getName());
                 if (e.getMessage().equals("Connection reset")) {
+                    Print.format("<info> Client " + handler.getName() + " had a connection reset ");
                     break;
+                } else {
+                    Print.error(e.getMessage() + " in ClientHandler " + handler.getName() + " ");
                 }
             }
         }
