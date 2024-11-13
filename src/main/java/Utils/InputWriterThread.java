@@ -7,26 +7,33 @@ import java.io.InputStreamReader;
 public class InputWriterThread extends Thread {
     private final BufferedReader in;
     private final ClientHandler handler;
+    private Print print;
     public String lastLine;
 
-    InputWriterThread(ClientHandler handler) throws IOException {
+    InputWriterThread(ClientHandler handler, Print print) throws IOException {
         in = new BufferedReader(new InputStreamReader(handler.socket.getInputStream()));
         this.handler = handler;
         lastLine = "";
 
+        this.print = print;
+
         this.start();
     }
 
-    private void receive (String s) {
+    public void setPrint(Print print) {
+        this.print = print;
+    }
+
+    private void receive(String s) {
         synchronized (lastLine) {
             lastLine = s;
         }
-        if (s.contains("<info>")){
-            Print.format(s + " ");
-        } else if (handler.isServer != null && handler.isServer){
-            Print.format("<received> " + s.getBytes().length + " bytes ");
+        if (s.contains("<info>")) {
+            print.formatR(s + " ");
+        } else if (handler.isServer != null && handler.isServer) {
+            print.formatR("<received> " + s.getBytes().length + " bytes ");
         } else {
-            Print.format("<received> " + s + " ");
+            print.formatR("<received> " + s + " ");
         }
     }
 
@@ -37,10 +44,10 @@ public class InputWriterThread extends Thread {
                 this.wait();
             }
         } catch (InterruptedException e) {
-            Print.error("InputWriter error: " + e.getMessage());
+            print.errorR("InputWriter error: " + e.getMessage());
         }
 
-        Print.format("<log> InputWriter is active!");
+        print.formatR("<log> InputWriter is active!");
 
         while (handler.isAlive()) {
             try {
@@ -50,14 +57,14 @@ public class InputWriterThread extends Thread {
                 }
             } catch (IOException e) {
                 if (e.getMessage().equals("Connection reset")) {
-                    Print.format("<info> Client " + handler.getName() + " had a connection reset ");
+                    print.formatR("<info> Client " + handler.getName() + " had a connection reset ");
                     break;
                 } else {
-                    Print.error(e.getMessage() + " in ClientHandler " + handler.getName() + " ");
+                    print.errorR(e.getMessage() + " in ClientHandler " + handler.getName() + " ");
                 }
             }
         }
 
-        Print.format("<log> InputWriter died...");
+        print.formatR("<log> InputWriter died...");
     }
 }

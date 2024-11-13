@@ -14,11 +14,14 @@ public class ClientHandler extends Thread {
     protected String name;
     protected Boolean isServer;
     private String request;
+    private Print print;
 
-    public ClientHandler(Socket socket, boolean isServer) {
+    public ClientHandler(Socket socket, boolean isServer, Print print) {
         this(socket);
         this.isServer = isServer;
         request = "";
+        this.print = print;
+        in.setPrint(print);
     }
 
     public ClientHandler(Socket socket, String name) {
@@ -33,12 +36,15 @@ public class ClientHandler extends Thread {
             }
 
             this.socket = socket;
-            in = new InputWriterThread(this);
+
+            this.print = new Print(true);
+
+            in = new InputWriterThread(this, print);
             out = new PrintWriter(socket.getOutputStream(), true);
 
             this.start();
         } catch (IOException e) {
-            Print.error("Failed to establish connection to \"" + name + "\"");
+            print.errorR("Failed to establish connection to \"" + name + "\"");
         }
     }
 
@@ -49,15 +55,15 @@ public class ClientHandler extends Thread {
 
     public void send(String s) {
         if (isServer != null && isServer) {
-            Print.format("<sent> " + s.getBytes().length + " bytes ");
+            print.formatR("<sent> " + s.getBytes().length + " bytes ");
         } else {
-            Print.format("<sent> " + s + " ");
+            print.formatR("<sent> " + s + " ");
         }
         out.println(s);
     }
 
     public void sendRequest(String s) {
-        Print.format("<sent> " + s + " ");
+        print.formatR("<sent> " + s + " ");
         out.println("<request> " + name + " " + s);
     }
 
@@ -69,7 +75,7 @@ public class ClientHandler extends Thread {
             try {
                 thread.join();
             } catch (InterruptedException e) {
-                Print.error("Thread was interrupted while joining in ClientHandler ");
+                print.errorR("Thread was interrupted while joining in ClientHandler ");
             }
         } else {
             do {
@@ -80,14 +86,14 @@ public class ClientHandler extends Thread {
                 try {
                     thread.join();
                 } catch (InterruptedException e) {
-                    Print.error("Thread was interrupted while joining in ClientHandler ");
+                    print.errorR("Thread was interrupted while joining in ClientHandler ");
                 }
             } while (reconnect());
         }
     }
 
     private boolean reconnect() {
-        Print.format("<info> Do you want to attempt to reconnect to the server? y/N ");
+        print.formatR("<info> Do you want to attempt to reconnect to the server? y/N ");
         Scanner sc = new Scanner(System.in);
 
         if (sc.hasNextLine()) {
@@ -98,12 +104,12 @@ public class ClientHandler extends Thread {
                     try {
                         socket = new Socket("localhost", socket.getPort());
 
-                        in = new InputWriterThread(this);
+                        in = new InputWriterThread(this, print);
                         out = new PrintWriter(socket.getOutputStream(), true);
 
                         return true;
                     } catch (IOException e) {
-                        Print.error("Failed to reconnect to \"" + socket.toString() + "\"");
+                        print.errorR("Failed to reconnect to \"" + socket.toString() + "\"");
                     }
                 }
             }
@@ -133,7 +139,7 @@ public class ClientHandler extends Thread {
                 kbin = new Scanner(System.in);
             }
 
-            Print.format("<log> Clienthandler is active!");
+            print.formatR("<log> Clienthandler is active!");
 
             synchronized (in) {
                 in.notify();
@@ -148,7 +154,7 @@ public class ClientHandler extends Thread {
                     }
                 }
                 setHandlerName(Arrays.stream(in.lastLine.split(" ")).toList().get(1));
-                Print.format("<info> Registered previously unnamed client \"" + name + "\"");
+                print.formatR("<info> Registered previously unnamed client \"" + name + "\"");
 
                 out.println("<info> Greetings, user " + name + " on our messaging server!\n" +
                         "<info> You can:\n" +
@@ -166,13 +172,18 @@ public class ClientHandler extends Thread {
 
             if (kbin != null) {
                 while (in.isAlive()) { //Client mode send data
+
                     if (kbin.hasNextLine()) {
                         String line = kbin.nextLine();
-                        sendRequest(line);
+                        if (line.equals("exit")){
+                            break;
+                        } else {
+                            sendRequest(line);
+                        }
                     }
                 }
 
-                Print.format("<log> Client disconnected.");
+                print.formatR("<log> Client disconnected.");
             } else { //Server mode send data
                 while (in.isAlive()) {
                     String buf = null;
@@ -190,7 +201,7 @@ public class ClientHandler extends Thread {
                     }
                 }
 
-                Print.format("<log> Client " + name + " disconnected.");
+                print.formatR("<log> Client " + name + " disconnected.");
             }
         }
     }

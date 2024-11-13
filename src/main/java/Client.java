@@ -19,9 +19,12 @@ public class Client {
             if (cfgd.listFiles() != null) {
                 Print.format("<info> Choose the server for connection...");
 
+                int c = 0;
+
                 for (File f : cfgd.listFiles()) {
-                    Print.format(Server.cfgToString(f.getName()));
+                    Print.format("(" + c + ") " + Server.cfgToString(f.getName()));
                     cfgs.add(f.getName());
+                    c++;
                 }
             } else {
                 Print.error("No configurations found");
@@ -32,11 +35,25 @@ public class Client {
 
             String servername = "";
 
-            while (!cfgs.contains(servername)){
-                Print.format("<info> Type in cfg name or hit enter to choose the 1st");
+            while (!cfgs.contains(servername)) {
+                Print.format("<info> Type in cfg name/number or hit enter to choose the 1st");
+
+                Integer n = null;
+
                 servername = sc.nextLine();
+
+                try {
+                    n = Integer.parseInt(servername);
+                } catch (Exception _) {
+
+                }
+
                 if (servername.isEmpty()) {
                     servername = cfgs.getFirst();
+                }
+
+                if (n != null && n < cfgs.size()) {
+                    servername = cfgs.get(n);
                 }
             }
 
