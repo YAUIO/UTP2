@@ -241,11 +241,11 @@ public class Server extends Thread {
             String first = msg.getFirst();
             msg.removeFirst();
 
-            if ((sender == null || sender.isEmpty()) && !(msg.size() > 1 && msg.get(1).equals("send"))) {
+            if ((sender == null || sender.isEmpty()) && !(msg.size() > 1 && (msg.get(1).equals("send") || msg.get(1).equals("/send")))) {
                 sender = first;
             }
 
-            if (msg.size() > 1 && msg.getFirst().equals("send")) {
+            if (msg.size() > 1 && (msg.get(1).equals("send") || msg.get(1).equals("/send"))) {
                 r += "user: \"" + first + "\" sent you: \"";
 
                 int i = 2;
