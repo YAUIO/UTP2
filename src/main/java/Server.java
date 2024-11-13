@@ -97,7 +97,7 @@ public class Server extends Thread {
                 if (clients.isEmpty()) {
                     handler.send("<info> Only you are currently connected to the server ");
                 } else {
-                    handler.send("<info> List of connected users: " + Print.toStr(clients));
+                    handler.send("<info> List of connected users: " + Print.toStr(clients, Thread::getName));
                 }
                 clients.add(handler);
                 print.formatR("<info> " + clients.size() + " clients connected ");
@@ -362,6 +362,10 @@ public class Server extends Thread {
                                     }
                                 }
                                 continue;
+                            }
+
+                            if (parsedRequest.get(1).startsWith("/")) {
+                                parsedRequest.set(1,parsedRequest.get(1).substring(1));
                             }
 
                             switch (parsedRequest.get(1)) {

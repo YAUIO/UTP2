@@ -91,6 +91,15 @@ public class ClientHandler extends Thread {
                 }
             } while (reconnect());
         }
+
+        try {
+            socket.close();
+        } catch (IOException e) {
+            print.errorR(" Couldn't close a socket in " + name);
+        }
+
+        print.formatR("<log> Client " + name + " died");
+        in.interrupt();
     }
 
     private boolean reconnect() {
@@ -99,6 +108,8 @@ public class ClientHandler extends Thread {
 
         if (sc.hasNextLine()) {
             String s = sc.nextLine();
+
+            System.out.println(s);
 
             if (!s.isEmpty()) {
                 if (s.equals("y") || s.equals("Y") || s.equals("yes")) {
@@ -169,10 +180,10 @@ public class ClientHandler extends Thread {
                 out.println("<info> Greetings, user " + name + " on our messaging server!\n" +
                         "<info> You can:\n" +
                         "<info> Send a message to every other connected client - default behaviour\n" +
-                        "<info> /send <username> <msg> - Send a message to a specific person\n" +
-                        "<info> /sendm <u1> <u2> ,then next line just <msg> - Send a message to multiple specific people\n" +
-                        "<info> /sendex <u1> <u2>,then next line just <msg> - Send a message to every other connected client, with exception to some people\n" +
-                        "<info> /banlist - Query the server for the list of banned phrases\n");
+                        "<info> send <username> <msg> - Send a message to a specific person\n" +
+                        "<info> sendm <u1> <u2> ,then next line just <msg> - Send a message to multiple specific people\n" +
+                        "<info> sendex <u1> <u2>,then next line just <msg> - Send a message to every other connected client, with exception to some people\n" +
+                        "<info> banlist - Query the server for the list of banned phrases\n");
 
                 out.println();
             } else {

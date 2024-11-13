@@ -52,31 +52,33 @@ public class Print {
 
     public void formatR(String s) {
         if (isActive) {
-            if (prefix != null && prefixAddition) {
-                System.out.print(prefix);
-            }
-
-            if (s.startsWith("<log>")) {
-                System.out.println(Ansi.colorize(s, Attribute.BRIGHT_BLACK_BACK()));
-            } else if (s.startsWith("<sent>") || s.startsWith("<received>")) {
-                String msg = "";
-                if (s.contains("<sent>")) {
-                    msg += Ansi.colorize("<sent> ", Attribute.GREEN_BACK());
-                } else {
-                    msg += Ansi.colorize("<received> ", Attribute.GREEN_BACK());
+            synchronized (System.out) {
+                if (prefix != null && prefixAddition) {
+                    System.out.print(prefix);
                 }
-                msg += Ansi.colorize(s.substring(s.indexOf(' ')), Attribute.ITALIC(), Attribute.WHITE_BACK());
-                System.out.println(msg);
-            } else if (s.startsWith("<info>")) {
-                System.out.println(Ansi.colorize(s, Attribute.BOLD(), Attribute.BLUE_BACK()));
-            } else if (s.startsWith("<debug>")) {
-                String msg = Ansi.colorize("<debug> ", Attribute.BACK_COLOR(0, 34, 244), Attribute.WHITE_TEXT());
-                msg += Ansi.colorize(s.substring(s.indexOf(' ')), Attribute.ITALIC(), Attribute.WHITE_BACK());
-                System.out.println(msg);
-            } else if (s.contains("<serverInfo>")) {
-                System.out.println(Ansi.colorize(s, Attribute.CYAN_BACK(), Attribute.BLACK_TEXT()));
-            } else {
-                System.out.println(s);
+
+                if (s.startsWith("<log>")) {
+                    System.out.println(Ansi.colorize(s, Attribute.BRIGHT_BLACK_BACK()));
+                } else if (s.startsWith("<sent>") || s.startsWith("<received>")) {
+                    String msg = "";
+                    if (s.contains("<sent>")) {
+                        msg += Ansi.colorize("<sent> ", Attribute.GREEN_BACK());
+                    } else {
+                        msg += Ansi.colorize("<received> ", Attribute.GREEN_BACK());
+                    }
+                    msg += Ansi.colorize(s.substring(s.indexOf(' ')), Attribute.ITALIC(), Attribute.WHITE_BACK());
+                    System.out.println(msg);
+                } else if (s.startsWith("<info>")) {
+                    System.out.println(Ansi.colorize(s, Attribute.BOLD(), Attribute.BLUE_BACK()));
+                } else if (s.startsWith("<debug>")) {
+                    String msg = Ansi.colorize("<debug> ", Attribute.BACK_COLOR(0, 34, 244), Attribute.WHITE_TEXT());
+                    msg += Ansi.colorize(s.substring(s.indexOf(' ')), Attribute.ITALIC(), Attribute.WHITE_BACK());
+                    System.out.println(msg);
+                } else if (s.contains("<serverInfo>")) {
+                    System.out.println(Ansi.colorize(s, Attribute.CYAN_BACK(), Attribute.BLACK_TEXT()));
+                } else {
+                    System.out.println(s);
+                }
             }
         }
     }
@@ -86,11 +88,13 @@ public class Print {
     }
 
     public void errorR(String s) {
-        if (isActive) {
-            if (prefix != null && prefixAddition) {
-                System.out.print(prefix);
+        synchronized (System.out) {
+            if (isActive) {
+                if (prefix != null && prefixAddition) {
+                    System.out.print(prefix);
+                }
+                System.out.println(Ansi.colorize("<error> " + s, Attribute.BLACK_TEXT(), Attribute.RED_BACK()));
             }
-            System.out.println(Ansi.colorize("<error> " + s, Attribute.BLACK_TEXT(), Attribute.RED_BACK()));
         }
     }
 
