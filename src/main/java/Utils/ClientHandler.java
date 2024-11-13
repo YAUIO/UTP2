@@ -15,6 +15,7 @@ public class ClientHandler extends Thread {
     protected Boolean isServer;
     private String request;
     private Print print;
+    protected Scanner kbin;
 
     public ClientHandler(Socket socket, boolean isServer, Print print) {
         this(socket);
@@ -75,7 +76,7 @@ public class ClientHandler extends Thread {
             try {
                 thread.join();
             } catch (InterruptedException e) {
-                print.errorR("Thread was interrupted while joining in ClientHandler ");
+                print.errorR("Thread was interrupted while joining in ClientHandler (no attempt to reconnect) ");
             }
         } else {
             do {
@@ -86,7 +87,7 @@ public class ClientHandler extends Thread {
                 try {
                     thread.join();
                 } catch (InterruptedException e) {
-                    print.errorR("Thread was interrupted while joining in ClientHandler ");
+                    print.errorR("Thread was interrupted while joining in ClientHandler, reconnecting... ");
                 }
             } while (reconnect());
         }
@@ -118,6 +119,15 @@ public class ClientHandler extends Thread {
         return false;
     }
 
+    public void close() {
+        try {
+            socket.close();
+            in.interrupt();
+        } catch (IOException e) {
+            print.errorR("Error while closing socket: " + e.getMessage() + ", " + name);
+        }
+    }
+
     public String getRequest() {
         synchronized (request) {
             if (!request.equals("null") && !request.isEmpty()) {
@@ -133,7 +143,7 @@ public class ClientHandler extends Thread {
     private class ClientRun implements Runnable {
         @Override
         public void run() {
-            Scanner kbin = null;
+            kbin = null;
 
             if (isServer == null || !isServer) {
                 kbin = new Scanner(System.in);
@@ -175,7 +185,7 @@ public class ClientHandler extends Thread {
 
                     if (kbin.hasNextLine()) {
                         String line = kbin.nextLine();
-                        if (line.equals("exit")){
+                        if (line.equals("exit")) {
                             break;
                         } else {
                             sendRequest(line);

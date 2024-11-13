@@ -22,7 +22,7 @@ public class Client {
                 int c = 0;
 
                 for (File f : cfgd.listFiles()) {
-                    Print.format("(" + c + ") " + Server.cfgToString(f.getName()));
+                    Print.format("(" + c + ") " + Server.cfgToString(f.getName(), false));
                     cfgs.add(f.getName());
                     c++;
                 }

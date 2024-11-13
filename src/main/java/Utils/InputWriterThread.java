@@ -3,6 +3,7 @@ package Utils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.Socket;
 
 public class InputWriterThread extends Thread {
     private final BufferedReader in;
@@ -52,12 +53,26 @@ public class InputWriterThread extends Thread {
         while (handler.isAlive()) {
             try {
                 String line = in.readLine();
-                if (!line.isEmpty()) {
+                if (line == null) {
+                    Print.format("<info> Server is not active, terminating...");
+                    break;
+                } if (!line.isEmpty()) {
                     receive(line);
                 }
+
+                try {
+                    synchronized (this) {
+                        this.wait(1);
+                    }
+                } catch (InterruptedException e) {
+                    print.formatR("<info> InputWriter interrupted");
+                }
+
             } catch (IOException e) {
                 if (e.getMessage().equals("Connection reset")) {
                     print.formatR("<info> Client " + handler.getName() + " had a connection reset ");
+                    break;
+                } else if (e.getMessage().equals("Socket closed")) {
                     break;
                 } else {
                     print.errorR(e.getMessage() + " in ClientHandler " + handler.getName() + " ");

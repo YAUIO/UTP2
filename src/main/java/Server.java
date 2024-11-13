@@ -18,6 +18,8 @@ public class Server extends Thread {
     HashSet<String> blacklist;
     RequestHandler requestHandler;
 
+    private Socket lastSocket;
+
     Print print;
 
     private Server(int port) {
@@ -26,15 +28,34 @@ public class Server extends Thread {
             clients = new ArrayList<>();
             requestHandler = new RequestHandler(this);
 
+            lastSocket = new Socket();
+
             print = new Print(true);
 
         } catch (IOException e) {
-            System.exit(0);
+            print.formatR("Error while creating a server: " + e.getMessage());
         }
     }
 
     public void setActiveLog() {
         print.isActive = !print.isActive;
+    }
+
+    public void shutdown() {
+        synchronized (this) {
+            this.interrupt();
+            try {
+                this.server.close();
+            } catch (IOException e) {
+                print.formatR("<info> ServerSocket error while closing ");
+            }
+            synchronized (clients) {
+                for (ClientHandler ch : clients) {
+                    ch.close();
+                    ch.interrupt();
+                }
+            }
+        }
     }
 
     @Override
@@ -43,28 +64,83 @@ public class Server extends Thread {
             requestHandler.notify();
         }
 
+        Runnable accept = getAcceptRunnable();
+
         print.formatR("<log> Server \"" + name + "\" is online on port " + server.getLocalPort() + "!");
 
         while (true) {
-            try {
-                print.formatR("<log> Server is waiting for connection...");
-                Socket client = server.accept();
-                ClientHandler handler = new ClientHandler(client, true, print);
-                handler.setHandlerName(name);
-                synchronized (clients) {
-                    if (clients.isEmpty()){
-                        handler.send("<info> Only you are currently connected to the server ");
-                    } else {
-                        handler.send("<info> List of connected users: " + Print.toStr(clients));
-                    }
-                    clients.add(handler);
-                    print.formatR("<info> " + clients.size() + " clients connected ");
+
+            Thread acceptWait = new Thread(accept);
+
+            acceptWait.start();
+
+            print.formatR("<log> Server is waiting for connection...");
+
+            synchronized (this) {
+                try {
+                    wait();
+                } catch (InterruptedException _) {
+                    acceptWait.interrupt();
+                    print.formatR("<log> Server interrupted");
+                    break;
                 }
-                print.formatR("<log> Server accepted a socket!");
-            } catch (IOException e) {
-                print.errorR("Failed to establish connection to the client in main Server thread");
             }
+
+            ClientHandler handler = null;
+
+            synchronized (lastSocket) {
+                handler = new ClientHandler(lastSocket, true, print);
+            }
+
+            handler.setHandlerName(name);
+            synchronized (clients) {
+                if (clients.isEmpty()) {
+                    handler.send("<info> Only you are currently connected to the server ");
+                } else {
+                    handler.send("<info> List of connected users: " + Print.toStr(clients));
+                }
+                clients.add(handler);
+                print.formatR("<info> " + clients.size() + " clients connected ");
+            }
+            print.formatR("<log> Server accepted a socket!");
         }
+
+        print.formatR("<log> Server died");
+    }
+
+    private Runnable getAcceptRunnable() {
+        final Server s = this;
+
+        Runnable accept = () -> {
+            try {
+                synchronized (lastSocket) {
+                    lastSocket = server.accept();
+                    synchronized (s) {
+                        s.notify();
+                    }
+                }
+
+                synchronized (Thread.currentThread()) {
+                    try {
+                        Thread.currentThread().wait(1);
+                    } catch (InterruptedException _) {
+                        lastSocket.close();
+                    }
+                }
+
+                print.formatR("<log> Server accept thread exited");
+
+            } catch (IOException e) {
+                print.errorR("Failed to establish connection to the client in accept Server thread");
+
+                try {
+                    lastSocket.close();
+                } catch (IOException _) {
+
+                }
+            }
+        };
+        return accept;
     }
 
     public static Server createServer() {
@@ -85,7 +161,6 @@ public class Server extends Thread {
                 }
             } else {
                 Utils.Print.error("No configurations found");
-                System.exit(0);
             }
 
             Scanner sc = new Scanner(System.in);
@@ -117,7 +192,6 @@ public class Server extends Thread {
             return serverFromCfg(servername);
         } catch (Exception e) {
             Utils.Print.error("Failed to create a server with error: \"" + e.getMessage() + "\"");
-            System.exit(0);
         }
 
         return null;
@@ -131,6 +205,8 @@ public class Server extends Thread {
             server.name = in.readLine();
             server.blacklist = new HashSet<>();
             server.blacklist.addAll(Arrays.asList(in.readLine().split(",")));
+
+            server.print.setPrefix(Ansi.colorize(" | " + server.name + " | ", Attribute.ITALIC(), Attribute.BLACK_BACK()));
 
             server.start();
 
@@ -179,7 +255,7 @@ public class Server extends Thread {
                     i++;
                 }
 
-                r = r.substring(0,r.length()-1);
+                r = r.substring(0, r.length() - 1);
 
                 r += "\"";
             } else {
@@ -194,7 +270,7 @@ public class Server extends Thread {
                     i++;
                 }
 
-                r = r.substring(0,r.length()-1);
+                r = r.substring(0, r.length() - 1);
 
                 r += "\"";
             }
@@ -266,7 +342,7 @@ public class Server extends Thread {
                                 }
                             }
 
-                            if (!parsedRequest.isEmpty()){
+                            if (!parsedRequest.isEmpty()) {
                                 msg = msgToString(parsedRequest);
                             }
 
@@ -323,7 +399,7 @@ public class Server extends Thread {
                                     for (ClientHandler client : server.clients) {
                                         if (sender.equals(client.getName())) {
                                             print.formatR("<debug> send found match of " + sender + " with " + client.getName());
-                                            client.send("<info> Now type the message you want to send to everybody, excluding " + Print.toStr(receivers) + ", or " + Ansi.colorize("CANCEL", Attribute.RED_BACK()) + Ansi.colorize(" to abort the operation ",Attribute.BOLD(),Attribute.BLUE_BACK()));
+                                            client.send("<info> Now type the message you want to send to everybody, excluding " + Print.toStr(receivers) + ", or " + Ansi.colorize("CANCEL", Attribute.RED_BACK()) + Ansi.colorize(" to abort the operation ", Attribute.BOLD(), Attribute.BLUE_BACK()));
                                             break;
                                         }
                                     }
@@ -341,7 +417,7 @@ public class Server extends Thread {
                                 default -> {
                                     if (state == State.Empty) {
                                         for (ClientHandler client : server.clients) {
-                                            if (!client.getName().equals(parsedRequest.getFirst())){
+                                            if (!client.getName().equals(parsedRequest.getFirst())) {
                                                 client.send(msg);
                                             }
                                         }
@@ -389,6 +465,32 @@ public class Server extends Thread {
         }
 
         return 0;
+    }
+
+    public static String cfgToString(String configuration, boolean isServer) {
+        try {
+            BufferedReader in = new BufferedReader(new FileReader("src/main/java/Configurations/" + configuration));
+
+            String r = "";
+
+            if (isServer){
+                r += "<serverInfo> Port: ";
+                r += in.readLine();
+                r += ", Name: ";
+            } else {
+                in.readLine();
+                r += "<serverInfo> Name: ";
+            }
+            r += in.readLine();
+            r += ", cfgName: ";
+            r += configuration;
+
+            return r;
+        } catch (Exception e) {
+            Utils.Print.error("Couldn't parse cfg: " + e.getMessage());
+        }
+
+        return "<error>";
     }
 
     public static String cfgToString(String configuration) {

@@ -9,9 +9,20 @@ import java.util.function.Function;
 
 public class Print {
     public boolean isActive;
+    private String prefix;
+    private boolean prefixAddition;
 
     public Print(boolean active) {
         isActive = active;
+        prefixAddition = true;
+    }
+
+    public void setPrefix(String pre) {
+        prefix = pre;
+    }
+
+    public void setPrefixAddition(boolean b) {
+        prefixAddition = b;
     }
 
     public static void format(String s) {
@@ -41,6 +52,10 @@ public class Print {
 
     public void formatR(String s) {
         if (isActive) {
+            if (prefix != null && prefixAddition) {
+                System.out.print(prefix);
+            }
+
             if (s.startsWith("<log>")) {
                 System.out.println(Ansi.colorize(s, Attribute.BRIGHT_BLACK_BACK()));
             } else if (s.startsWith("<sent>") || s.startsWith("<received>")) {
@@ -72,6 +87,9 @@ public class Print {
 
     public void errorR(String s) {
         if (isActive) {
+            if (prefix != null && prefixAddition) {
+                System.out.print(prefix);
+            }
             System.out.println(Ansi.colorize("<error> " + s, Attribute.BLACK_TEXT(), Attribute.RED_BACK()));
         }
     }
@@ -122,6 +140,75 @@ public class Print {
         } else {
             return toStr(col);
         }
+
+        return r;
+    }
+
+    public static String normalize(String s, int len) {
+        String r = "";
+
+        if (s.length() < len) {
+            for (int i = 0; i < (len - s.length()) / 2; i++) {
+                r += Ansi.colorize(" ", Attribute.BLUE_BACK());
+            }
+
+            r += Ansi.colorize(s, Attribute.BLUE_BACK());
+
+            for (int i = 0; i < (len - s.length()) / 2 + (len - s.length()) % 2; i++) {
+                r += Ansi.colorize(" ", Attribute.BLUE_BACK());
+            }
+        } else {
+            for (int i = 0; i < (s.length() - len) / 2; i++) {
+                r += Ansi.colorize(" ", Attribute.BLUE_BACK());
+            }
+
+            r += Ansi.colorize(s.substring((s.length() - len) / 2, s.length() - (s.length() - len)), Attribute.BLUE_BACK());
+
+            for (int i = 0; i < (s.length() - len) / 2; i++) {
+                r += Ansi.colorize(" ", Attribute.BLUE_BACK());
+            }
+        }
+
+        r += Ansi.colorize("|", Attribute.BLUE_BACK());
+
+        return r;
+    }
+
+
+    public static String normalize(String s, int len, boolean isBool) {
+        String r = "";
+
+        if (s.length() < len) {
+            for (int i = 0; i < (len - s.length()) / 2; i++) {
+                r += Ansi.colorize(" ", Attribute.BLUE_BACK());
+            }
+
+            if (isBool) {
+                if (s.equals("true")) {
+                    r += Ansi.colorize(s, Attribute.GREEN_BACK());
+                } else {
+                    r += Ansi.colorize(s, Attribute.RED_BACK());
+                }
+            } else {
+                r += Ansi.colorize(s, Attribute.BLUE_BACK());
+            }
+
+            for (int i = 0; i < (len - s.length()) / 2 + (len - s.length()) % 2; i++) {
+                r += Ansi.colorize(" ", Attribute.BLUE_BACK());
+            }
+        } else {
+            for (int i = 0; i < (s.length() - len) / 2; i++) {
+                r += Ansi.colorize(" ", Attribute.BLUE_BACK());
+            }
+
+            r += Ansi.colorize(s.substring((s.length() - len) / 2, s.length() - (s.length() - len)), Attribute.BLUE_BACK());
+
+            for (int i = 0; i < (s.length() - len) / 2; i++) {
+                r += Ansi.colorize(" ", Attribute.BLUE_BACK());
+            }
+        }
+
+        r += Ansi.colorize("|", Attribute.BLUE_BACK());
 
         return r;
     }
