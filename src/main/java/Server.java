@@ -227,7 +227,9 @@ public class Server extends Thread {
         enum State {
             Empty,
             nextSendM,
-            nextSendEx
+            nextSendEx,
+            Img,
+            nextSendImg
         }
 
         RequestHandler(Server server) {
@@ -317,7 +319,12 @@ public class Server extends Thread {
                         }
 
                         if (request != null && !request.equals("null")) {
-                            print.formatR("<info> processing request: " + request);
+
+                            if (!request.contains("<img>")) {
+                                print.formatR("<info> Processing request: " + request);
+                            } else {
+                                print.formatR("<info> Processing image request ");
+                            }
 
                             boolean isDenied = false;
 
@@ -326,7 +333,7 @@ public class Server extends Thread {
 
                             String msg = "";
 
-                            if (state != State.Empty) {
+                            if (state != State.Empty && state != State.Img) {
                                 if (parsedRequest.getLast().equals("CANCEL")) {
                                     for (ClientHandler client : server.clients) {
                                         if (sender.equals(client.getName())) {

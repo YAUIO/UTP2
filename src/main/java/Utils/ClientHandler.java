@@ -1,5 +1,8 @@
 package Utils;
 
+import com.diogonunes.jcolor.Ansi;
+import com.diogonunes.jcolor.Attribute;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -64,6 +67,41 @@ public class ClientHandler extends Thread {
     }
 
     public void sendRequest(String s) {
+        if (s.contains("<img>")) {
+            if (s.contains(".jpg") || s.contains(".png") || s.contains(".jpeg")) {
+                ArrayList<String> split = new ArrayList<>(Arrays.stream(s.split(" ")).toList());
+
+                String command = split.getFirst();
+                String path = "";
+                String receivers = "";
+
+                int imgStart = split.indexOf("<img>");
+
+                for (int i = 1; i < imgStart; i++) {
+                    receivers += split.get(i) + " ";
+                }
+
+                for (int i = imgStart+1; i<split.size(); i++) {
+                    path += split.get(i);
+                }
+
+                CLImage img = null;
+                try {
+                    img = new CLImage(path);
+                    print.formatR("<debug> Parsed image at path: " + s);
+                } catch (IOException e) {
+                    print.errorR("Error while parsing the image: " + e.getMessage());
+                    return;
+                }
+                s = img.toString(80,80) + img.toString(true);
+                print.formatR("<info> Sent a downscaled image to the server ");
+                out.println("<request> " + name + " " + command + " " + receivers + " <img>" + s);
+                return;
+            } else {
+                print.errorR("Unsupported image type");
+                return;
+            }
+        }
         print.formatR("<sent> " + s + " ");
         out.println("<request> " + name + " " + s);
     }

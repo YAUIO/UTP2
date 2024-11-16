@@ -4,17 +4,21 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class InputWriterThread extends Thread {
     private final BufferedReader in;
     private final ClientHandler handler;
     private Print print;
+    private ArrayList<String> stack;
     public String lastLine;
 
     InputWriterThread(ClientHandler handler, Print print) throws IOException {
         in = new BufferedReader(new InputStreamReader(handler.socket.getInputStream()));
         this.handler = handler;
         lastLine = "";
+        stack = new ArrayList<>();
 
         this.print = print;
 
@@ -33,6 +37,17 @@ public class InputWriterThread extends Thread {
             print.formatR(s + " ");
         } else if (handler.isServer != null && handler.isServer) {
             print.formatR("<received> " + s.getBytes().length + " bytes ");
+        } else if (s.contains("<img>")) {
+            ArrayList<String> split = new ArrayList<>(Arrays.stream(s.split("<request> ")).toList());
+            String fline = split.getFirst();
+            print.formatR("<received> " + s.substring(0,fline.indexOf("you:")+4));
+            split.removeFirst();
+            for (String line : split) {
+                if (line.contains("origImg")) {
+                    break;
+                }
+                System.out.println(line);
+            }
         } else {
             print.formatR("<received> " + s + " ");
         }
