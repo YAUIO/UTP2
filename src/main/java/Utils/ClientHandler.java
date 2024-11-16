@@ -101,7 +101,11 @@ public class ClientHandler extends Thread {
                 print.errorR("Unsupported image type");
                 return;
             }
+        } else if (s.equals("DOWNLOAD")) {
+            in.download();
+            return;
         }
+
         print.formatR("<sent> " + s + " ");
         out.println("<request> " + name + " " + s);
     }
@@ -221,7 +225,8 @@ public class ClientHandler extends Thread {
                         "<info> send <username> <msg> - Send a message to a specific person\n" +
                         "<info> sendm <u1> <u2> ,then next line just <msg> - Send a message to multiple specific people\n" +
                         "<info> sendex <u1> <u2>,then next line just <msg> - Send a message to every other connected client, with exception to some people\n" +
-                        "<info> banlist - Query the server for the list of banned phrases\n");
+                        "<info> banlist - Query the server for the list of banned phrases\n" +
+                        "<info> <msg> can be replaced with <img> path/to/file \n");
 
                 out.println();
             } else {
