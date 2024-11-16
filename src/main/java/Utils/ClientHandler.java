@@ -219,7 +219,7 @@ public class ClientHandler extends Thread {
                 setHandlerName(Arrays.stream(in.lastLine.split(" ")).toList().get(1));
                 print.formatR("<info> Registered previously unnamed client \"" + name + "\"");
 
-                out.println("<info> Greetings, user " + name + " on our messaging server!\n" +
+                out.println("<info> Greetings, user " + name + " on our messaging server!\n" + //TODO implement text mixed with images
                         "<info> You can:\n" +
                         "<info> Send a message to every other connected client - default behaviour\n" +
                         "<info> send <username> <msg> - Send a message to a specific person\n" +

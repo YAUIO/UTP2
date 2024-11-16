@@ -78,7 +78,7 @@ public class InputWriterThread extends Thread {
 
             print.formatR("<info> To download the image in better quality, type " + Ansi.colorize("DOWNLOAD", Attribute.RED_BACK()));
 
-            lastImg = new BufferedImage(480, 240, BufferedImage.TYPE_INT_ARGB);
+            lastImg = new BufferedImage(480, 240, BufferedImage.TYPE_INT_ARGB); //TODO rescale images to cut off blank pixels
 
             int x = 0;
             int y = 0;
