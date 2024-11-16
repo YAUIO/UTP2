@@ -22,7 +22,7 @@ public class ServerManager extends Thread {
         }
     }
 
-    private ArrayList<ServerRecord> servers;
+    private final ArrayList<ServerRecord> servers;
 
     private ServerManager() {
         servers = new ArrayList<>();
@@ -40,7 +40,7 @@ public class ServerManager extends Thread {
                 "<info> list - list existing servers \n" +
                 "<info> help - list existing commands \n" +
                 "<info> exit - exit from ServerManager \n" +
-                Ansi.colorize("<info> note - tag is used only locally to ease your management experience", Attribute.ITALIC());
+                Ansi.colorize("<info> note - <tag> is used only locally to ease your management experience, can also be null ", Attribute.ITALIC(), Attribute.BOLD());
 
         Print.format(help);
 
