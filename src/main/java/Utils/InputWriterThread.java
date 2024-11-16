@@ -5,12 +5,9 @@ import com.diogonunes.jcolor.Attribute;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.Socket;
+import java.io.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,7 +16,6 @@ public class InputWriterThread extends Thread {
     private final BufferedReader in;
     private final ClientHandler handler;
     private Print print;
-    private ArrayList<String> stack;
     public String lastLine;
     private BufferedImage lastImg;
 
@@ -27,7 +23,6 @@ public class InputWriterThread extends Thread {
         in = new BufferedReader(new InputStreamReader(handler.socket.getInputStream()));
         this.handler = handler;
         lastLine = "";
-        stack = new ArrayList<>();
 
         this.print = print;
 
@@ -58,6 +53,9 @@ public class InputWriterThread extends Thread {
         synchronized (lastLine) {
             lastLine = s;
         }
+
+        //todo write emulation of console line being only input
+
         if (s.contains("<info>")) {
             print.formatR(s + " ");
         } else if (handler.isServer != null && handler.isServer) {
