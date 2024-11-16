@@ -86,7 +86,7 @@ public class InputWriterThread extends Thread {
             while (source < split.size()) {
                 x = 0;
                 for (String pixel : split.get(source).split(" ")) {
-                    int p = 0;
+                    int p;
                     try {
                         p = Integer.parseInt(pixel);
                     } catch (Exception _) {
