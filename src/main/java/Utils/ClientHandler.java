@@ -3,7 +3,9 @@ package Utils;
 import com.diogonunes.jcolor.Ansi;
 import com.diogonunes.jcolor.Attribute;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -18,7 +20,7 @@ public class ClientHandler extends Thread {
     protected Boolean isServer;
     private String request;
     private Print print;
-    protected Scanner kbin;
+    protected BufferedReader kbin;
 
     public ClientHandler(Socket socket, boolean isServer, Print print) {
         this(socket);
@@ -58,7 +60,7 @@ public class ClientHandler extends Thread {
     }
 
     public void send(String s) {
-        if (isServer != null && isServer) {
+       if (isServer != null && isServer) {
             print.formatR("<sent> " + s.getBytes().length + " bytes ");
         } else {
             print.formatR("<sent> " + s + " ");
@@ -151,8 +153,6 @@ public class ClientHandler extends Thread {
         if (sc.hasNextLine()) {
             String s = sc.nextLine();
 
-            System.out.println(s);
-
             if (!s.isEmpty()) {
                 if (s.equals("y") || s.equals("Y") || s.equals("yes")) {
                     try {
@@ -199,7 +199,7 @@ public class ClientHandler extends Thread {
             kbin = null;
 
             if (isServer == null || !isServer) {
-                kbin = new Scanner(System.in);
+                kbin = new BufferedReader(new InputStreamReader(System.in));
             }
 
             print.formatR("<log> Clienthandler is active!");
@@ -237,13 +237,17 @@ public class ClientHandler extends Thread {
             if (kbin != null) {
                 while (in.isAlive()) { //Client mode send data
 
-                    if (kbin.hasNextLine()) {
-                        String line = kbin.nextLine();
-                        if (line.equals("exit")) {
-                            break;
-                        } else {
-                            sendRequest(line);
+                    try {
+                        if (kbin.ready()) {
+                            String line = kbin.readLine();
+                            if (line.equals("exit")) {
+                                break;
+                            } else {
+                                sendRequest(line);
+                            }
                         }
+                    } catch (IOException e) {
+                        print.errorR("kbin error: " + e.getMessage());
                     }
                 }
 

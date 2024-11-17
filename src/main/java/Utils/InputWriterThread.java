@@ -8,6 +8,9 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,6 +35,13 @@ public class InputWriterThread extends Thread {
     public void download() {
         if (lastImg != null) {
             try {
+                try {
+                    Path download = Paths.get("Downloads/");
+                    Files.createDirectory(download);
+                } catch (Exception _) {
+
+                }
+
                 File out = new File("Downloads/" + LocalDateTime.now().toString().replace(':','-') + ".png");
                 if (!out.createNewFile()) {
                     print.errorR("Error while creating a file");

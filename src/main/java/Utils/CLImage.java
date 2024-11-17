@@ -146,7 +146,7 @@ public class CLImage {
             for (int x = 0; x < width; x++) {
                 int pixel = source.getRGB(x, y);
                 Color color = new Color(pixel, true);
-                Attribute rgb = Attribute.BACK_COLOR(color.getRed(),color.getBlue(),color.getGreen());
+                Attribute rgb = Attribute.BACK_COLOR(color.getRed(),color.getGreen(),color.getBlue());
                 imgStr += Ansi.colorize("   ", rgb);
             }
         }
