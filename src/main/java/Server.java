@@ -370,6 +370,10 @@ public class Server extends Thread {
                                 continue;
                             }
 
+                            if (parsedRequest.size() < 2) {
+                                continue;
+                            }
+
                             if (parsedRequest.get(1).startsWith("/")) {
                                 parsedRequest.set(1,parsedRequest.get(1).substring(1));
                             }
