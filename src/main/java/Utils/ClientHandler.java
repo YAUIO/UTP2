@@ -96,7 +96,7 @@ public class ClientHandler extends Thread {
                     return;
                 }
                 s = img.toString(80,80) + img.toString(true);
-                print.formatR("<info> Sent a downscaled image to the server ");
+                print.formatR("<info> Sent the image to the server ");
                 out.println("<request> " + name + " " + command + " " + receivers + " <img>" + s);
                 return;
             } else {
@@ -226,7 +226,7 @@ public class ClientHandler extends Thread {
                         "<info> sendm <u1> <u2> ,then next line just <msg> - Send a message to multiple specific people\n" +
                         "<info> sendex <u1> <u2>,then next line just <msg> - Send a message to every other connected client, with exception to some people\n" +
                         "<info> banlist - Query the server for the list of banned phrases\n" +
-                        "<info> <msg> can be replaced with <img> path/to/file \n");
+                        "<info> <msg> can be replaced either with <img> path/to/file, or plain text \n");
 
                 out.println();
             } else {
