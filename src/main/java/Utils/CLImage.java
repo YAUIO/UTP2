@@ -100,57 +100,44 @@ public class CLImage {
 
     public String toString(boolean getOrigImage) {
         if (getOrigImage) {
-            String imgStr = "";
+            StringBuilder imgStr = new StringBuilder();
 
-            int x = 1;
-            int y = 1;
+            int width = origImg.getWidth();
+            int height = origImg.getHeight();
 
-            int maxY = 200;
-            int maxX = 400;
-
-            if (origImg.getWidth()>maxX|| origImg.getHeight()>maxY) {
-                x = origImg.getWidth()/maxX;
-                y = origImg.getHeight()/maxY;
-            }
-
-            BufferedImage downscale = rescaleImg(origImg,origImg.getWidth()/x,origImg.getHeight()/y);
-
-            int width = downscale.getWidth();
-            int height = downscale.getHeight();
-
-            imgStr += "<request> <origImg> ";
+            imgStr.append("<request> <origImg> ");
 
             for (int yi = 0; yi < height; yi++) {
-                if (yi!=0) imgStr += "<request> ";
+                if (yi!=0) imgStr.append("<request> ");
                 for (int xi = 0; xi < width; xi++) {
-                    imgStr += downscale.getRGB(xi, yi) + " ";
+                    imgStr.append(origImg.getRGB(xi, yi)).append(" ");
                 }
             }
 
-            imgStr += "<request> </img>";
+            imgStr.append("<request> </img>");
 
-            return imgStr;
+            return imgStr.toString();
         } else {
             return toString();
         }
     }
 
     private static String toString(BufferedImage source) {
-        String imgStr = "";
+        StringBuilder imgStr = new StringBuilder();
 
         int width = source.getWidth();
         int height = source.getHeight();
 
         for (int y = 0; y < height; y++) {
-            if (y != 0) imgStr += "<request> ";
+            if (y != 0) imgStr.append("<request> ");
             for (int x = 0; x < width; x++) {
                 int pixel = source.getRGB(x, y);
                 Color color = new Color(pixel, true);
                 Attribute rgb = Attribute.BACK_COLOR(color.getRed(),color.getGreen(),color.getBlue());
-                imgStr += Ansi.colorize("   ", rgb);
+                imgStr.append(Ansi.colorize("   ", rgb));
             }
         }
 
-        return imgStr;
+        return imgStr.toString();
     }
 }

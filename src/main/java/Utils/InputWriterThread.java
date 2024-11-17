@@ -86,7 +86,7 @@ public class InputWriterThread extends Thread {
 
             print.formatR("<info> To download the image in better quality, type " + Ansi.colorize("DOWNLOAD", Attribute.RED_BACK()));
 
-            lastImg = new BufferedImage(split.get(source).split(" ").length-1, split.size() - source, BufferedImage.TYPE_INT_ARGB);
+            lastImg = new BufferedImage(split.get(source).split(" ").length-1, split.size() - source - 1, BufferedImage.TYPE_INT_ARGB);
 
             int x;
             int y = 0;

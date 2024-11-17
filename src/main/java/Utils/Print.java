@@ -87,147 +87,145 @@ public class Print {
     }
 
     public static <T> String toStr(Collection<T> col) {
-        String r = "";
+        StringBuilder r = new StringBuilder();
 
         for (T element : col) {
-            r += element + ", ";
+            r.append(element).append(", ");
         }
 
         if (r.length() >= 2) {
-            r = r.substring(0, r.length() - 2);
+            r = new StringBuilder(r.substring(0, r.length() - 2));
         }
 
-        return r;
+        return r.toString();
     }
 
     public static <T> String toStr(Collection<T> col, Function<T, String> proj) {
-        String r = "";
+        StringBuilder r = new StringBuilder();
 
         for (T element : col) {
-            r += proj.apply(element) + ", ";
+            r.append(proj.apply(element)).append(", ");
         }
 
         if (r.length() >= 2) {
-            r = r.substring(0, r.length() - 2);
+            r = new StringBuilder(r.substring(0, r.length() - 2));
         }
 
-        return r;
+        return r.toString();
     }
 
     public static <T> String toStr(Collection<T> col, boolean count) {
-        String r = "";
+        StringBuilder r = new StringBuilder();
 
         if (count) {
             int c = 0;
 
 
             for (T element : col) {
-                r += "(" + c + ") " + element + ", ";
+                r.append("(").append(c).append(") ").append(element).append(", ");
                 c++;
             }
 
             if (r.length() >= 2) {
-                r = r.substring(0, r.length() - 2);
+                r = new StringBuilder(r.substring(0, r.length() - 2));
             }
         } else {
             return toStr(col);
         }
 
-        return r;
+        return r.toString();
     }
 
     public static String normalize(String s, int len) {
-        String r = "";
+        StringBuilder r = new StringBuilder();
 
         if (s.length() < len) {
             for (int i = 0; i < (len - s.length()) / 2; i++) {
-                r += Ansi.colorize(" ", Attribute.BLUE_BACK());
+                r.append(Ansi.colorize(" ", Attribute.BLUE_BACK()));
             }
 
-            r += Ansi.colorize(s, Attribute.BLUE_BACK());
+            r.append(Ansi.colorize(s, Attribute.BLUE_BACK()));
 
             for (int i = 0; i < (len - s.length()) / 2 + (len - s.length()) % 2; i++) {
-                r += Ansi.colorize(" ", Attribute.BLUE_BACK());
+                r.append(Ansi.colorize(" ", Attribute.BLUE_BACK()));
             }
         } else {
             for (int i = 0; i < (s.length() - len) / 2; i++) {
-                r += Ansi.colorize(" ", Attribute.BLUE_BACK());
+                r.append(Ansi.colorize(" ", Attribute.BLUE_BACK()));
             }
 
-            r += Ansi.colorize(s.substring((s.length() - len) / 2, s.length() - (s.length() - len)), Attribute.BLUE_BACK());
+            r.append(Ansi.colorize(s.substring((s.length() - len) / 2, s.length() - (s.length() - len)), Attribute.BLUE_BACK()));
 
             for (int i = 0; i < (s.length() - len) / 2; i++) {
-                r += Ansi.colorize(" ", Attribute.BLUE_BACK());
+                r.append(Ansi.colorize(" ", Attribute.BLUE_BACK()));
             }
         }
 
-        r += Ansi.colorize("|", Attribute.BLUE_BACK());
+        r.append(Ansi.colorize("|", Attribute.BLUE_BACK()));
 
-        return r;
+        return r.toString();
     }
 
 
     public static String normalize(String s, int len, boolean isBool) {
-        String r = "";
+        StringBuilder r = new StringBuilder();
 
         if (s.length() < len) {
             for (int i = 0; i < (len - s.length()) / 2; i++) {
-                r += Ansi.colorize(" ", Attribute.BLUE_BACK());
+                r.append(Ansi.colorize(" ", Attribute.BLUE_BACK()));
             }
 
             if (isBool) {
                 if (s.equals("true")) {
-                    r += Ansi.colorize(s, Attribute.GREEN_BACK());
+                    r.append(Ansi.colorize(s, Attribute.GREEN_BACK()));
                 } else {
-                    r += Ansi.colorize(s, Attribute.RED_BACK());
+                    r.append(Ansi.colorize(s, Attribute.RED_BACK()));
                 }
             } else {
-                r += Ansi.colorize(s, Attribute.BLUE_BACK());
+                r.append(Ansi.colorize(s, Attribute.BLUE_BACK()));
             }
 
             for (int i = 0; i < (len - s.length()) / 2 + (len - s.length()) % 2; i++) {
-                r += Ansi.colorize(" ", Attribute.BLUE_BACK());
+                r.append(Ansi.colorize(" ", Attribute.BLUE_BACK()));
             }
         } else {
             for (int i = 0; i < (s.length() - len) / 2; i++) {
-                r += Ansi.colorize(" ", Attribute.BLUE_BACK());
+                r.append(Ansi.colorize(" ", Attribute.BLUE_BACK()));
             }
 
-            r += Ansi.colorize(s.substring((s.length() - len) / 2, s.length() - (s.length() - len)), Attribute.BLUE_BACK());
+            r.append(Ansi.colorize(s.substring((s.length() - len) / 2, s.length() - (s.length() - len)), Attribute.BLUE_BACK()));
 
             for (int i = 0; i < (s.length() - len) / 2; i++) {
-                r += Ansi.colorize(" ", Attribute.BLUE_BACK());
+                r.append(Ansi.colorize(" ", Attribute.BLUE_BACK()));
             }
         }
 
-        r += Ansi.colorize("|", Attribute.BLUE_BACK());
+        r.append(Ansi.colorize("|", Attribute.BLUE_BACK()));
 
-        return r;
+        return r.toString();
     }
 
     public static <T> String toStr(Collection<T> col, Function<T, String> proj, boolean count, String separator) {
-        String r = "";
+        StringBuilder r = new StringBuilder();
 
         if (count) {
             int c = 0;
 
             for (T element : col) {
-                r += "(" + c + ") " + proj.apply(element) + separator;
+                r.append("(").append(c).append(") ").append(proj.apply(element)).append(separator);
                 c++;
             }
 
             if (r.length() >= separator.length()) {
-                r = r.substring(0, r.length() - separator.length());
+                r = new StringBuilder(r.substring(0, r.length() - separator.length()));
             }
         } else {
             return toStr(col, proj);
         }
 
-        return r;
+        return r.toString();
     }
-    private static Attribute getTextAttribute(Color color) {
-        return Attribute.TEXT_COLOR(color.getRed(), color.getGreen(), color.getBlue());
-    }
+
     private static Attribute getBackAttribute(Color color) {
         return Attribute.BACK_COLOR(color.getRed(), color.getGreen(), color.getBlue());
     }

@@ -86,7 +86,7 @@ public class Server extends Thread {
                 }
             }
 
-            ClientHandler handler = null;
+            ClientHandler handler;
 
             synchronized (lastSocket) {
                 handler = new ClientHandler(lastSocket, true, print);
@@ -111,7 +111,7 @@ public class Server extends Thread {
     private Runnable getAcceptRunnable() {
         final Server s = this;
 
-        Runnable accept = () -> {
+        return () -> {
             try {
                 synchronized (lastSocket) {
                     lastSocket = server.accept();
@@ -140,7 +140,6 @@ public class Server extends Thread {
                 }
             }
         };
-        return accept;
     }
 
     public static Server createServer() {
@@ -239,7 +238,7 @@ public class Server extends Thread {
         }
 
         private String msgToString(ArrayList<String> msg) {
-            String r = "";
+            StringBuilder r = new StringBuilder();
             String first = msg.getFirst();
             msg.removeFirst();
 
@@ -248,38 +247,38 @@ public class Server extends Thread {
             }
 
             if (msg.size() > 1 && (msg.get(1).equals("send") || msg.get(1).equals("/send"))) {
-                r += "user: \"" + first + "\" sent you: \"";
+                r.append("user: \"").append(first).append("\" sent you: \"");
 
                 int i = 2;
 
                 while (i < msg.size()) {
-                    r += msg.get(i) + " ";
+                    r.append(msg.get(i)).append(" ");
                     i++;
                 }
 
-                r = r.substring(0, r.length() - 1);
+                r = new StringBuilder(r.substring(0, r.length() - 1));
 
-                r += "\"";
+                r.append("\"");
             } else {
-                r += "user: \"" + sender + "\" sent you: \"";
+                r.append("user: \"").append(sender).append("\" sent you: \"");
 
                 sender = "";
 
                 int i = 0;
 
                 while (i < msg.size()) {
-                    r += msg.get(i) + " ";
+                    r.append(msg.get(i)).append(" ");
                     i++;
                 }
 
-                r = r.substring(0, r.length() - 1);
+                r = new StringBuilder(r.substring(0, r.length() - 1));
 
-                r += "\"";
+                r.append("\"");
             }
 
             msg.addFirst(first);
 
-            return r;
+            return r.toString();
         }
 
         @Override
@@ -390,9 +389,9 @@ public class Server extends Thread {
                                 case "sendm" -> {
                                     state = State.nextSendM;
                                     sender = parsedRequest.getFirst();
-                                    print.formatR("<debug> sendm sender " + sender + ", full set " + parsedRequest.toString());
+                                    print.formatR("<debug> sendm sender " + sender + ", full set " + parsedRequest);
                                     receivers = new HashSet<>(parsedRequest.subList(2, parsedRequest.size()));
-                                    print.formatR("<debug> sendm hashset " + receivers.toString());
+                                    print.formatR("<debug> sendm hashset " + receivers);
                                     for (ClientHandler client : server.clients) {
                                         if (sender.equals(client.getName())) {
                                             print.formatR("<debug> send found match of " + sender + " with " + client.getName());
@@ -404,9 +403,9 @@ public class Server extends Thread {
                                 case "sendex" -> {
                                     state = State.nextSendEx;
                                     sender = parsedRequest.getFirst();
-                                    print.formatR("<debug> sendex sender " + sender + ", full set " + parsedRequest.toString());
+                                    print.formatR("<debug> sendex sender " + sender + ", full set " + parsedRequest);
                                     receivers = new HashSet<>(parsedRequest.subList(2, parsedRequest.size()));
-                                    print.formatR("<debug> sendex hashset " + receivers.toString());
+                                    print.formatR("<debug> sendex hashset " + receivers);
                                     for (ClientHandler client : server.clients) {
                                         if (sender.equals(client.getName())) {
                                             print.formatR("<debug> send found match of " + sender + " with " + client.getName());

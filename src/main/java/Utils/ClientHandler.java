@@ -74,22 +74,22 @@ public class ClientHandler extends Thread {
                 ArrayList<String> split = new ArrayList<>(Arrays.stream(s.split(" ")).toList());
 
                 String command = split.getFirst();
-                String path = "";
-                String receivers = "";
+                StringBuilder path = new StringBuilder();
+                StringBuilder receivers = new StringBuilder();
 
                 int imgStart = split.indexOf("<img>");
 
                 for (int i = 1; i < imgStart; i++) {
-                    receivers += split.get(i) + " ";
+                    receivers.append(split.get(i)).append(" ");
                 }
 
                 for (int i = imgStart+1; i<split.size(); i++) {
-                    path += split.get(i);
+                    path.append(split.get(i));
                 }
 
                 CLImage img = null;
                 try {
-                    img = new CLImage(path);
+                    img = new CLImage(path.toString());
                     print.formatR("<debug> Parsed image at path: " + s);
                 } catch (IOException e) {
                     print.errorR("Error while parsing the image: " + e.getMessage());

@@ -48,9 +48,7 @@ public class ServerManager extends Thread {
         String buf = "";
         boolean exit = false;
 
-        while (true) {
-            if (exit) break;
-
+        while (!exit) {
             if (kbin.hasNextLine()) {
                 buf = kbin.nextLine();
             }
@@ -91,12 +89,8 @@ public class ServerManager extends Thread {
                             }
                         }
                     }
-                    case "list" -> {
-                        getStatus();
-                    }
-                    case "help" -> {
-                        Print.format(help);
-                    }
+                    case "list" -> getStatus();
+                    case "help" -> Print.format(help);
                     case "remove" -> {
                         Integer n = null;
 
@@ -125,12 +119,8 @@ public class ServerManager extends Thread {
                             setAllPrefixBool(false);
                         }
                     }
-                    case "exit" -> {
-                        exit = true;
-                    }
-                    default -> {
-                        Print.format("<debug> Unrecognised input ");
-                    }
+                    case "exit" -> exit = true;
+                    default -> Print.format("<debug> Unrecognised input ");
                 }
             }
         }
@@ -148,7 +138,7 @@ public class ServerManager extends Thread {
 
     private void getStatus() {
 
-        String r = "";
+        StringBuilder r = new StringBuilder();
 
         int c = 0;
 
@@ -168,14 +158,14 @@ public class ServerManager extends Thread {
         };
 
         for (ServerRecord element : servers) {
-            r += Ansi.colorize("(" + c + ") | ", Attribute.BLUE_BACK()) + proj.apply(element) + " \n";
+            r.append(Ansi.colorize("(" + c + ") | ", Attribute.BLUE_BACK())).append(proj.apply(element)).append(" \n");
             c++;
         }
 
         if (r.length() >= 2) {
-            r = r.substring(0, r.length() - 2);
+            r = new StringBuilder(r.substring(0, r.length() - 2));
         }
 
-        Utils.Print.format(r);
+        Utils.Print.format(r.toString());
     }
 }
