@@ -9,7 +9,7 @@ import java.util.Scanner;
 
 public class Client {
     public static void main(String[] args) {
-        Socket client = null;
+        Socket client;
 
         try {
             File cfgd = new File("src/main/java/Configurations/");

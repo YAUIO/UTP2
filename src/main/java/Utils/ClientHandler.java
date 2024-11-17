@@ -1,8 +1,5 @@
 package Utils;
 
-import com.diogonunes.jcolor.Ansi;
-import com.diogonunes.jcolor.Attribute;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -87,7 +84,7 @@ public class ClientHandler extends Thread {
                     path.append(split.get(i));
                 }
 
-                CLImage img = null;
+                CLImage img;
                 try {
                     img = new CLImage(path.toString());
                     print.formatR("<debug> Parsed image at path: " + s);
