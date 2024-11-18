@@ -2,13 +2,16 @@ import Utils.ClientHandler;
 import Utils.Print;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Client {
     public static void main(String[] args) {
+        client();
+    }
+
+    public static void client() {
         Socket client;
 
         try {

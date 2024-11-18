@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 public class ClientHandler extends Thread {
-    protected Socket socket;
+    public Socket socket;
     protected InputWriterThread in;
     protected PrintWriter out;
     protected String name;

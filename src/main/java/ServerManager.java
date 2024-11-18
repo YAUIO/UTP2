@@ -1,6 +1,8 @@
+import Utils.ClientHandler;
 import Utils.Print;
 import com.diogonunes.jcolor.Ansi;
 import com.diogonunes.jcolor.Attribute;
+import jdk.jshell.execution.Util;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -56,7 +58,7 @@ public class ServerManager extends Thread {
                 if (kbin.ready()) {
                     buf = kbin.readLine();
                 }
-            } catch (IOException e){
+            } catch (IOException e) {
                 Print.error("Error while reading a line in SM: " + e.getMessage());
             }
 
@@ -96,7 +98,7 @@ public class ServerManager extends Thread {
                             }
                         }
                     }
-                    case "list" -> getStatus();
+                    case "list" -> getStatus(parsedInput);
                     case "help" -> Print.format(help);
                     case "remove" -> {
                         Integer n = null;
@@ -129,6 +131,8 @@ public class ServerManager extends Thread {
                     case "exit" -> exit = true;
                     default -> Print.format("<debug> Unrecognised input ");
                 }
+
+                buf = "";
             }
         }
 
@@ -143,36 +147,68 @@ public class ServerManager extends Thread {
         }
     }
 
-    private void getStatus() {
+    private void getStatus(ArrayList<String> parsedInput) {
 
-        StringBuilder r = new StringBuilder();
+        if (parsedInput.size() == 1) {
 
-        int c = 0;
+            StringBuilder r = new StringBuilder();
 
-        Print.format(Ansi.colorize("(c) | " + Utils.Print.normalize("Tag", 12) + Utils.Print.normalize("Logging", 10) + Utils.Print.normalize("State", 12)
-                + Utils.Print.normalize("Servername", 20) + Utils.Print.normalize("Port", 6) + Utils.Print.normalize("Active clients", 16), Attribute.BLUE_BACK()));
+            int c = 0;
 
-        Function<ServerRecord, String> proj = (ServerRecord sr) -> {
-            String st = "";
-            st += Utils.Print.normalize(sr.recordName, 12);
-            st += Utils.Print.normalize(String.valueOf(sr.server.print.isActive), 10, true);
-            st += Utils.Print.normalize(String.valueOf(sr.server.getState()), 12);
-            st += Utils.Print.normalize(sr.server.name, 20);
-            st += Utils.Print.normalize(String.valueOf(sr.server.server.getLocalPort()), 6);
-            st += Utils.Print.normalize(String.valueOf(sr.server.clients.size()), 16);
+            Print.format(Ansi.colorize("(c) | " + Utils.Print.normalize("Tag", 12) + Utils.Print.normalize("Logging", 10) + Utils.Print.normalize("State", 12)
+                    + Utils.Print.normalize("Servername", 20) + Utils.Print.normalize("Port", 6) + Utils.Print.normalize("Active clients", 16), Print.getBackAttribute(Print.info)));
 
-            return st;
-        };
+            Function<ServerRecord, String> proj = (ServerRecord sr) -> {
+                StringBuilder st = new StringBuilder();
+                st.append(Print.normalize(sr.recordName, 12));
+                st.append(Print.normalize(String.valueOf(sr.server.print.isActive), 10, true));
+                st.append(Print.normalize(String.valueOf(sr.server.getState()), 12));
+                st.append(Print.normalize(sr.server.name, 20));
+                st.append(Print.normalize(String.valueOf(sr.server.server.getLocalPort()), 6));
+                st.append(Print.normalize(String.valueOf(sr.server.clients.size()), 16));
 
-        for (ServerRecord element : servers) {
-            r.append(Ansi.colorize("(" + c + ") | ", Attribute.BLUE_BACK())).append(proj.apply(element)).append(" \n");
-            c++;
+                return st.toString();
+            };
+
+            for (ServerRecord element : servers) {
+                r.append(Ansi.colorize("(" + c + ") | ", Print.getBackAttribute(Print.info))).append(proj.apply(element)).append(" \n");
+                c++;
+            }
+
+            if (r.length() >= 2) {
+                r = new StringBuilder(r.substring(0, r.length() - 2));
+            }
+
+            Utils.Print.format(r.toString());
+
+        } else if (parsedInput.size() > 2) {
+            if (parsedInput.getLast().equals("clients")) {
+                Integer n = null;
+
+                try {
+                    n = Integer.parseInt(parsedInput.get(1));
+                } catch (Exception _) {
+
+                }
+
+                synchronized (servers) {
+                    if (n != null && n < servers.size()) {
+                        Print.format(Ansi.colorize("(c) | " + Utils.Print.normalize("Username", 12) + Utils.Print.normalize("State", 12)
+                                + Utils.Print.normalize("Port", 6), Print.getBackAttribute(Print.info)));
+                        int c = 0;
+                        for (ClientHandler ch : servers.get(n).server.clients) {
+                            StringBuilder line = new StringBuilder();
+                            line.append(Ansi.colorize("(" + c + ") | ", Print.getBackAttribute(Print.info)));
+                            line.append(Print.normalize(ch.getName(), 12));
+                            line.append(Utils.Print.normalize(String.valueOf(ch.getState()), 12));
+                            line.append(Utils.Print.normalize(String.valueOf(ch.socket.getPort()), 6));
+                            Ansi.colorize(String.valueOf(line), Print.getBackAttribute(Print.info));
+                            Print.format(line.toString());
+                            c++;
+                        }
+                    }
+                }
+            }
         }
-
-        if (r.length() >= 2) {
-            r = new StringBuilder(r.substring(0, r.length() - 2));
-        }
-
-        Utils.Print.format(r.toString());
     }
 }
