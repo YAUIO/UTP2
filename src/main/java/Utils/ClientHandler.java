@@ -1,5 +1,8 @@
 package Utils;
 
+import Utils.Terminal.InputTerminal;
+import Utils.Terminal.OutputTerminal;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -18,6 +21,8 @@ public class ClientHandler extends Thread {
     private String request;
     private Print print;
     protected BufferedReader kbin;
+    protected InputTerminal inTerm;
+    protected OutputTerminal outTerm;
 
     public ClientHandler(Socket socket, boolean isServer, Print print) {
         this(socket);
@@ -27,8 +32,10 @@ public class ClientHandler extends Thread {
         in.setPrint(print);
     }
 
-    public ClientHandler(Socket socket, String name) {
+    public ClientHandler(Socket socket, String name, InputTerminal inTerm, OutputTerminal outTerm) {
         this(socket);
+        this.inTerm = inTerm;
+        this.outTerm = outTerm;
         this.setHandlerName(name);
     }
 
@@ -112,21 +119,21 @@ public class ClientHandler extends Thread {
     @Override
     public void run() {
         if (isServer != null && isServer) {
-            Thread thread = new Thread(new ClientRun());
-            thread.start();
+            Thread runThread = new Thread(new ClientRun());
+            runThread.start();
             try {
-                thread.join();
+                runThread.join();
             } catch (InterruptedException e) {
                 print.errorR("Thread was interrupted while joining in ClientHandler (no attempt to reconnect) ");
             }
         } else {
             do {
-                Thread thread = new Thread(new ClientRun());
+                Thread runThread = new Thread(new ClientRun());
 
-                thread.start();
+                runThread.start();
 
                 try {
-                    thread.join();
+                    runThread.join();
                 } catch (InterruptedException e) {
                     print.errorR("Thread was interrupted while joining in ClientHandler, reconnecting... ");
                 }
@@ -233,18 +240,35 @@ public class ClientHandler extends Thread {
 
             if (kbin != null) {
                 while (in.isAlive()) { //Client mode send data
-
-                    try {
-                        if (kbin.ready()) {
-                            String line = kbin.readLine();
-                            if (line.equals("exit")) {
-                                break;
-                            } else {
-                                sendRequest(line);
+                    if (Print.out == null) {
+                        try {
+                            if (kbin.ready()) {
+                                String line = kbin.readLine();
+                                if (line.equals("exit")) {
+                                    break;
+                                } else {
+                                    sendRequest(line);
+                                }
                             }
+                        } catch (IOException e) {
+                            print.errorR("kbin error: " + e.getMessage());
                         }
-                    } catch (IOException e) {
-                        print.errorR("kbin error: " + e.getMessage());
+                    } else {
+                        while (inTerm.staticReturn().isEmpty()) {
+                            synchronized (Thread.currentThread()) {
+                                try {
+                                    Thread.currentThread().wait(100);
+                                } catch (InterruptedException _) {
+
+                                }
+                            }
+                            if (inTerm.staticReturn().equals("exit")) {
+                                break;
+                            } else if (!inTerm.staticReturn().isEmpty()){
+                                sendRequest(inTerm.staticReturn());
+                            }
+                            inTerm.clearBuf();
+                        }
                     }
                 }
 

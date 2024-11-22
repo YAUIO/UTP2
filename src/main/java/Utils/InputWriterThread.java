@@ -64,7 +64,7 @@ public class InputWriterThread extends Thread {
             lastLine = s;
         }
 
-        //todo write emulation of console line being only input
+        //todo write emulation of console line being only input - idk how
 
         if (s.contains("<info>")) {
             print.formatR(s + " ");
@@ -81,12 +81,16 @@ public class InputWriterThread extends Thread {
                     break;
                 }
                 source++;
-                System.out.println(line);
+                if (Print.out == null) {
+                    System.out.println(line);
+                }
             }
 
             print.formatR("<info> To download the image in better quality, type " + Ansi.colorize("DOWNLOAD", Attribute.RED_BACK()));
 
             lastImg = new BufferedImage(split.get(source).split(" ").length-1, split.size() - source - 1, BufferedImage.TYPE_INT_ARGB);
+
+            handler.outTerm.appendImg(lastImg);
 
             int x;
             int y = 0;

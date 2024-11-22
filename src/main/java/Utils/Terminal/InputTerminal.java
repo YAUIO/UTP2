@@ -1,17 +1,24 @@
 package Utils.Terminal;
 
+import Utils.ClientHandler;
+
 import javax.swing.*;
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
 public class InputTerminal extends JTextField {
+    private ClientHandler handler;
+    private String lastLine;
+
     public InputTerminal(Color c) {
         this();
         setForeground(c);
     }
 
     public InputTerminal() {
+        lastLine = "";
         setEditable(true);
         setBackground(Color.BLACK);
         setForeground(Color.WHITE);
@@ -25,10 +32,24 @@ public class InputTerminal extends JTextField {
             @Override
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    System.out.println(getText());
+                    synchronized (lastLine) {
+                        lastLine = getText();
+                    }
                     setText("");
                 }
             }
         });
+    }
+
+    public String staticReturn() {
+        return lastLine;
+    }
+
+    public void clearBuf() {
+        lastLine = "";
+    }
+
+    public void setHandler(ClientHandler handler){
+        this.handler = handler;
     }
 }

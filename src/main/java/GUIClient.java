@@ -6,6 +6,9 @@ import javax.swing.*;
 import java.awt.*;
 
 public class GUIClient {
+    public static InputTerminal inTerm;
+    public static OutputTerminal outTerm;
+
     public static void main(String[] args) {
         try {
             JFrame window = new JFrame("GUIClient");
@@ -14,8 +17,8 @@ public class GUIClient {
             window.setSize(800, 600);
             window.setLayout(new BorderLayout());
 
-            OutputTerminal outTerm = new OutputTerminal();
-            InputTerminal inTerm = new InputTerminal ();
+            outTerm = new OutputTerminal();
+            inTerm = new InputTerminal ();
 
             // Add them to the JFrame, one at the top and one at the bottom
             window.add(new JScrollPane(outTerm), BorderLayout.CENTER);
@@ -29,7 +32,9 @@ public class GUIClient {
 
             Print.out = outTerm;
 
-            Client.client();
+            Client cliClient = new Client(inTerm, outTerm);
+
+            inTerm.setHandler(cliClient.clientHandler);
 
         } catch (Exception e) {
             e.printStackTrace();

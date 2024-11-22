@@ -1,5 +1,7 @@
 import Utils.ClientHandler;
 import Utils.Print;
+import Utils.Terminal.InputTerminal;
+import Utils.Terminal.OutputTerminal;
 
 import java.io.File;
 import java.net.Socket;
@@ -7,11 +9,19 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Client {
+    public ClientHandler clientHandler;
+
+    public InputTerminal inTerm;
+    public OutputTerminal outTerm;
+
     public static void main(String[] args) {
-        client();
+        new Client(null, null);
     }
 
-    public static void client() {
+    public Client(InputTerminal inTerm, OutputTerminal outTerm) {
+        this.inTerm = inTerm;
+        this.outTerm = outTerm;
+
         Socket client;
 
         try {
@@ -43,7 +53,17 @@ public class Client {
 
                 Integer n = null;
 
-                servername = sc.nextLine();
+                if (Print.out == null) {
+                    servername = sc.nextLine();
+                } else {
+                    while (inTerm == null || inTerm.staticReturn().isEmpty()) {
+                        synchronized (Thread.currentThread()) {
+                            Thread.currentThread().wait(100);
+                        }
+                    }
+                    servername = inTerm.staticReturn();
+                    inTerm.clearBuf();
+                }
 
                 try {
                     n = Integer.parseInt(servername);
@@ -60,24 +80,38 @@ public class Client {
                 }
             }
 
-            client = new Socket("localhost",Server.cfgToPort(servername));
+            client = new Socket("localhost", Server.cfgToPort(servername));
 
             Print.format("<info> Type in your username");
 
             servername = "";
 
-            while (servername.length() < 4){
-                servername = sc.nextLine();
+            while (servername.length() < 4) {
+                if (Print.out == null) {
+                    servername = sc.nextLine();
+                } else {
+                    while (inTerm == null || inTerm.staticReturn().isEmpty()) {
+                        synchronized (Thread.currentThread()) {
+                            Thread.currentThread().wait(100);
+                        }
+                    }
+                    servername = GUIClient.inTerm.staticReturn();
+                    inTerm.clearBuf();
+                }
                 if (servername.length() < 4) {
                     Print.error("Minimal amount of characters: 4");
                 }
             }
 
-            new ClientHandler(client, servername);
+            clientHandler = new ClientHandler(client, servername, inTerm, outTerm);
 
             Print.format("<log> Client connected!");
         } catch (Exception e) {
-            Print.error("Failed to create a client with error: \"" + e.getMessage() + "\"");
+            if (Print.out == null) {
+                Print.error("Failed to create a client with error: \"" + e.getMessage() + "\"");
+            } else {
+                System.out.println("Failed to create a client with error: \"" + e.getMessage() + "\"");
+            }
             System.exit(0);
         }
     }

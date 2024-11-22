@@ -3,10 +3,9 @@ package Utils.Terminal;
 import Utils.Print;
 
 import javax.swing.*;
-import javax.swing.text.Style;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyleContext;
+import javax.swing.text.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 
 public class OutputTerminal extends JTextPane {
 
@@ -43,6 +42,19 @@ public class OutputTerminal extends JTextPane {
             getStyledDocument().insertString(getStyledDocument().getLength(), s + "\n", style);
         } catch (Exception _){
             Print.error("Insertion failed");
+        }
+    }
+
+    public void appendImg(BufferedImage img) {
+        // Convert BufferedImage to ImageIcon
+        ImageIcon icon = new ImageIcon(img);
+
+        Style style = this.addStyle("ImageStyle", null);
+        StyleConstants.setIcon(style, icon);
+
+        try {
+            getStyledDocument().insertString(getStyledDocument().getLength()," ",style);
+        } catch (BadLocationException _) {
         }
     }
 }
