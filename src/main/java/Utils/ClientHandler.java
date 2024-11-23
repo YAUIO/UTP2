@@ -23,6 +23,7 @@ public class ClientHandler extends Thread {
     protected BufferedReader kbin;
     protected InputTerminal inTerm;
     protected OutputTerminal outTerm;
+    protected Thread runThread;
 
     public ClientHandler(Socket socket, boolean isServer, Print print) {
         this(socket);
@@ -119,7 +120,7 @@ public class ClientHandler extends Thread {
     @Override
     public void run() {
         if (isServer != null && isServer) {
-            Thread runThread = new Thread(new ClientRun());
+            runThread = new Thread(new ClientRun());
             runThread.start();
             try {
                 runThread.join();
@@ -128,7 +129,7 @@ public class ClientHandler extends Thread {
             }
         } else {
             do {
-                Thread runThread = new Thread(new ClientRun());
+                runThread = new Thread(new ClientRun());
 
                 runThread.start();
 
@@ -152,27 +153,43 @@ public class ClientHandler extends Thread {
 
     private boolean reconnect() {
         print.formatR("<info> Do you want to attempt to reconnect to the server? y/N ");
-        Scanner sc = new Scanner(System.in);
 
-        if (sc.hasNextLine()) {
+        Scanner sc = null;
+
+        if (Print.out == null) {
+            sc = new Scanner(System.in);
+        }
+
+        if (Print.out == null && sc.hasNextLine()) {
             String s = sc.nextLine();
 
             if (!s.isEmpty()) {
-                if (s.equals("y") || s.equals("Y") || s.equals("yes")) {
-                    try {
-                        socket = new Socket("localhost", socket.getPort());
-
-                        in = new InputWriterThread(this, print);
-                        out = new PrintWriter(socket.getOutputStream(), true);
-
-                        return true;
-                    } catch (IOException e) {
-                        print.errorR("Failed to reconnect to \"" + socket.toString() + "\"");
-                    }
-                }
+                return reconnectStringHandle(s);
             }
+        } else {
+            inTerm.clearBuf();
+
+            while (inTerm.staticReturn().isEmpty());
+
+            return reconnectStringHandle(inTerm.staticReturn());
         }
 
+        return false;
+    }
+
+    private boolean reconnectStringHandle(String s) {
+        if (s.equals("y") || s.equals("Y") || s.equals("yes")) {
+            try {
+                socket = new Socket("localhost", socket.getPort());
+
+                in = new InputWriterThread(this, print);
+                out = new PrintWriter(socket.getOutputStream(), true);
+
+                return true;
+            } catch (IOException e) {
+                print.errorR("Failed to reconnect to \"" + socket.toString() + "\"");
+            }
+        }
         return false;
     }
 
@@ -258,8 +275,8 @@ public class ClientHandler extends Thread {
                             synchronized (Thread.currentThread()) {
                                 try {
                                     Thread.currentThread().wait(100);
-                                } catch (InterruptedException _) {
-
+                                } catch (InterruptedException e) {
+                                    break;
                                 }
                             }
                             if (inTerm.staticReturn().equals("exit")) {
@@ -269,6 +286,7 @@ public class ClientHandler extends Thread {
                             }
                             inTerm.clearBuf();
                         }
+                        break;
                     }
                 }
 

@@ -240,13 +240,14 @@ public class Server extends Thread {
         private String msgToString(ArrayList<String> msg) {
             StringBuilder r = new StringBuilder();
             String first = msg.getFirst();
+            System.out.println(msg);
             msg.removeFirst();
 
-            if ((sender == null || sender.isEmpty()) && !(msg.size() > 1 && (msg.get(1).equals("send") || msg.get(1).equals("/send")))) {
+            if ((sender == null || sender.isEmpty()) && !(msg.size() > 1 && (msg.getFirst().equals("send") || msg.getFirst().equals("/send")))) {
                 sender = first;
             }
 
-            if (msg.size() > 1 && (msg.get(1).equals("send") || msg.get(1).equals("/send"))) {
+            if (msg.size() > 1 && (msg.getFirst().equals("send") || msg.getFirst().equals("/send"))) {
                 r.append("user: \"").append(first).append("\" sent you: \"");
 
                 int i = 2;

@@ -4,8 +4,6 @@ import com.diogonunes.jcolor.Ansi;
 import com.diogonunes.jcolor.Attribute;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.file.Files;
@@ -42,7 +40,7 @@ public class InputWriterThread extends Thread {
 
                 }
 
-                File out = new File("Downloads/" + LocalDateTime.now().toString().replace(':','-') + ".png");
+                File out = new File("Downloads/" + LocalDateTime.now().toString().replace(':', '-') + ".png");
                 if (!out.createNewFile()) {
                     print.errorR("Error while creating a file");
                     return;
@@ -66,6 +64,7 @@ public class InputWriterThread extends Thread {
 
         //todo write emulation of console line being only input - idk how
 
+
         if (s.contains("<info>")) {
             print.formatR(s + " ");
         } else if (handler.isServer != null && handler.isServer) {
@@ -88,9 +87,11 @@ public class InputWriterThread extends Thread {
 
             print.formatR("<info> To download the image in better quality, type " + Ansi.colorize("DOWNLOAD", Attribute.RED_BACK()));
 
-            lastImg = new BufferedImage(split.get(source).split(" ").length-1, split.size() - source - 1, BufferedImage.TYPE_INT_ARGB);
+            lastImg = new BufferedImage(split.get(source).split(" ").length - 1, split.size() - source - 1, BufferedImage.TYPE_INT_ARGB);
 
-            handler.outTerm.appendImg(lastImg);
+            if (handler.outTerm != null) {
+                handler.outTerm.appendImg(lastImg);
+            }
 
             int x;
             int y = 0;
@@ -132,7 +133,10 @@ public class InputWriterThread extends Thread {
             try {
                 String line = in.readLine();
                 if (line == null) {
-                    Print.format("<info> Server is not active, terminating...");
+                    if (Print.out != null) {
+                        handler.runThread.interrupt();
+                    }
+
                     break;
                 }
                 if (!line.isEmpty()) {

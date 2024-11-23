@@ -18,23 +18,20 @@ public class GUIClient {
             window.setLayout(new BorderLayout());
 
             outTerm = new OutputTerminal();
-            inTerm = new InputTerminal ();
+            inTerm = new InputTerminal();
 
-            // Add them to the JFrame, one at the top and one at the bottom
             window.add(new JScrollPane(outTerm), BorderLayout.CENTER);
             window.add(inTerm, BorderLayout.SOUTH);
 
-            // Add some sample text with ANSI codes
-            outTerm.append("Welcome to Terminal 1\n", Print.info);
-
-            // Display the JFrame
             window.setVisible(true);
 
             Print.out = outTerm;
 
             Client cliClient = new Client(inTerm, outTerm);
 
-            inTerm.setHandler(cliClient.clientHandler);
+            cliClient.clientHandler.join();
+
+            window.dispose();
 
         } catch (Exception e) {
             e.printStackTrace();

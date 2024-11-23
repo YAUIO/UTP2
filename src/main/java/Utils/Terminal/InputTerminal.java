@@ -1,27 +1,20 @@
 package Utils.Terminal;
 
-import Utils.ClientHandler;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.datatransfer.Clipboard;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
 public class InputTerminal extends JTextField {
-    private ClientHandler handler;
     private String lastLine;
-
-    public InputTerminal(Color c) {
-        this();
-        setForeground(c);
-    }
 
     public InputTerminal() {
         lastLine = "";
         setEditable(true);
         setBackground(Color.BLACK);
         setForeground(Color.WHITE);
+        setFont(new Font(Font.SANS_SERIF, Font.BOLD, 16));
         int height = 28;
         setSize(300,height);
         setPreferredSize(new Dimension(300,height));
@@ -42,14 +35,14 @@ public class InputTerminal extends JTextField {
     }
 
     public String staticReturn() {
-        return lastLine;
+        synchronized (lastLine) {
+            return lastLine;
+        }
     }
 
     public void clearBuf() {
-        lastLine = "";
-    }
-
-    public void setHandler(ClientHandler handler){
-        this.handler = handler;
+        synchronized (lastLine) {
+            lastLine = "";
+        }
     }
 }

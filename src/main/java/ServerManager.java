@@ -2,14 +2,12 @@ import Utils.ClientHandler;
 import Utils.Print;
 import com.diogonunes.jcolor.Ansi;
 import com.diogonunes.jcolor.Attribute;
-import jdk.jshell.execution.Util;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Scanner;
 import java.util.function.Function;
 
 public class ServerManager extends Thread {
@@ -43,6 +41,7 @@ public class ServerManager extends Thread {
                 "<info> remove <tag>/<number> - shutdown and remove a server \n" +
                 "<info> log <tag>/<number> - on/off server logs \n" +
                 "<info> list - list existing servers \n" +
+                "<info> list <tag>/<number> clients - list connected clients \n" +
                 "<info> help - list existing commands \n" +
                 "<info> exit - exit from ServerManager \n" +
                 Ansi.colorize("<info> note - <tag> is used only locally to ease your management experience, can also be null ", Attribute.ITALIC(), Attribute.BOLD());
@@ -159,15 +158,13 @@ public class ServerManager extends Thread {
                     + Utils.Print.normalize("Servername", 20) + Utils.Print.normalize("Port", 6) + Utils.Print.normalize("Active clients", 16), Print.getBackAttribute(Print.info)));
 
             Function<ServerRecord, String> proj = (ServerRecord sr) -> {
-                StringBuilder st = new StringBuilder();
-                st.append(Print.normalize(sr.recordName, 12));
-                st.append(Print.normalize(String.valueOf(sr.server.print.isActive), 10, true));
-                st.append(Print.normalize(String.valueOf(sr.server.getState()), 12));
-                st.append(Print.normalize(sr.server.name, 20));
-                st.append(Print.normalize(String.valueOf(sr.server.server.getLocalPort()), 6));
-                st.append(Print.normalize(String.valueOf(sr.server.clients.size()), 16));
 
-                return st.toString();
+                return Print.normalize(sr.recordName, 12) +
+                        Print.normalize(String.valueOf(sr.server.print.isActive), 10, true) +
+                        Print.normalize(String.valueOf(sr.server.getState()), 12) +
+                        Print.normalize(sr.server.name, 20) +
+                        Print.normalize(String.valueOf(sr.server.server.getLocalPort()), 6) +
+                        Print.normalize(String.valueOf(sr.server.clients.size()), 16);
             };
 
             for (ServerRecord element : servers) {
